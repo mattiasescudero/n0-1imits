@@ -24,7 +24,7 @@ export default function MediaPage() {
             SoundCloud →
           </a>
           <a
-            href="https://instagram.com/"
+            href="https://www.instagram.com/itsmattias/"
             target="_blank"
             rel="noreferrer"
             className="rounded-md border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100 transition"

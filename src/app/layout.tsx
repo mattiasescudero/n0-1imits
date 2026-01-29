@@ -65,7 +65,7 @@ export default function RootLayout({
               </a>
               <a
                 className="hover:underline"
-                href="https://instagram.com/"
+                href="https://www.instagram.com/itsmattias/"
                 target="_blank"
                 rel="noreferrer"
               >
