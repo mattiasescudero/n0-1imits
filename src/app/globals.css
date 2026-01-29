@@ -1,20 +1,10 @@
 @import "tailwindcss";
 
-/* CSS variables */
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
-/* Tailwind theme bindings */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-/* Dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -22,15 +12,10 @@
   }
 }
 
-/* Global styles */
 body {
   background: var(--background);
   color: var(--foreground);
 
-  /* Use Inter (loaded via Next.js font) */
-  font-family: var(--font-sans), sans-serif;
-
-  /* ENABLE SLASHED ZERO */
+  /* Enables slashed zero (works when your font supports it, like Inter) */
   font-feature-settings: "zero";
 }
-
