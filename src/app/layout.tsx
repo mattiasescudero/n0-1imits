@@ -1,5 +1,10 @@
 import "./globals.css";
 import Link from "next/link";
+import { Inter } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin"],
+});
 
 export const metadata = {
   title: "N0 1IMITS",
@@ -13,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-white text-black">
+      <body className={`${inter.className} bg-white text-black`}>
         {/* Header / Nav */}
         <header className="border-b border-neutral-200">
           <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">

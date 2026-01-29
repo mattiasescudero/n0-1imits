@@ -1,10 +1,12 @@
 @import "tailwindcss";
 
+/* CSS variables */
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
+/* Tailwind theme bindings */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -12,6 +14,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -19,8 +22,15 @@
   }
 }
 
+/* Global styles */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+
+  /* Use Inter (loaded via Next.js font) */
+  font-family: var(--font-sans), sans-serif;
+
+  /* ENABLE SLASHED ZERO */
+  font-feature-settings: "zero";
 }
+
