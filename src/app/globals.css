@@ -16,6 +16,8 @@ body {
   background: var(--background);
   color: var(--foreground);
 
-  /* Enables slashed zero (works when your font supports it, like Inter) */
-  font-feature-settings: "zero";
+  /* GLOBAL slashed zero */
+  font-variant-numeric: slashed-zero;
+  font-feature-settings: "zero" 1;
 }
+
