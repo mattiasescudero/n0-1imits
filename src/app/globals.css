@@ -15,9 +15,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-
-  /* GLOBAL slashed zero */
-  font-variant-numeric: slashed-zero;
-  font-feature-settings: "zero" 1;
 }
 
