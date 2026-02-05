@@ -6,6 +6,7 @@ export default function DropsPage() {
         Merch drops + events + releases. Everything new lives here.
       </p>
 
+      {/* Top section */}
       <section className="mt-10 grid gap-6 md:grid-cols-2">
         {/* Next Drop */}
         <div className="rounded-xl border border-neutral-200 p-6">
@@ -30,20 +31,42 @@ export default function DropsPage() {
           </p>
         </div>
 
-        {/* Events */}
+        {/* Upcoming Events */}
         <div className="rounded-xl border border-neutral-200 p-6">
           <h2 className="text-lg font-semibold">Upcoming Events</h2>
-          <p className="mt-2 text-sm text-neutral-600">
-            No events posted yet.
-          </p>
 
-          <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
-            Add your first event here when ready.
-          </div>
+          <a
+            href="https://partiful.com/e/vC0j8TVf22SbjxTi60lG?c=2CrsxI1s"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 block overflow-hidden rounded-lg border border-neutral-200 hover:bg-neutral-50 transition"
+          >
+            <img
+              src="/images/407byblos.png"
+              alt="+1-407-RECORDS @ BYBLOS HOOKAH LOUNGE"
+              className="h-40 w-full object-cover"
+              loading="lazy"
+            />
+
+            <div className="p-4">
+              <p className="text-sm text-neutral-500">Upcoming Event</p>
+              <h3 className="mt-1 font-medium">
+                +1-407-RECORDS @ BYBLOS HOOKAH LOUNGE
+              </h3>
+
+              <p className="mt-2 text-sm text-neutral-600">
+                Byblos Hookah Lounge · 02/15/26 · 9:00 PM
+              </p>
+
+              <div className="mt-3 inline-block text-sm font-medium text-black underline">
+                View Event →
+              </div>
+            </div>
+          </a>
         </div>
       </section>
 
-      {/* Past */}
+      {/* Past Drops */}
       <section className="mt-10">
         <h2 className="text-xl font-semibold">Past Drops</h2>
         <p className="mt-2 text-sm text-neutral-600">
@@ -57,4 +80,3 @@ export default function DropsPage() {
     </main>
   );
 }
-
