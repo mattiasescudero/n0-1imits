@@ -55,7 +55,7 @@ export default function DropsPage() {
               </h3>
 
               <p className="mt-2 text-sm text-neutral-600">
-                Byblos Hookah Lounge · 02/15/26 · 9:00 PM
+                Byblos Hookah Lounge · 02/13/26 · 9:00 PM
               </p>
 
               <div className="mt-3 inline-block text-sm font-medium text-black underline">
