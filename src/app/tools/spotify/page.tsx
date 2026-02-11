@@ -11,6 +11,18 @@ import {
   Legend,
 } from "recharts";
 
+import { parseSpotifyStreamingHistoryFiles } from "@/lib/spotify/parse";
+import { computeSpotifyMetrics } from "@/lib/spotify/metrics";
+
+type Play = {
+  ts: string;
+  msPlayed: number;
+  trackName: string | null;
+  artistName: string | null;
+  albumName: string | null;
+  trackUri: string | null;
+};
+
 type ApiResponse = {
   metrics?: {
     totals: {
@@ -37,12 +49,26 @@ type ApiResponse = {
   error?: string;
 };
 
+function extractTrackId(uri: string | null) {
+  if (!uri) return null;
+  const parts = uri.split(":");
+  if (parts.length === 3 && parts[1] === "track") return parts[2];
+  return null;
+}
+
+function monthKey(ts: string) {
+  const d = new Date(ts);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
 export default function SpotifyToolPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ApiResponse | null>(null);
 
-  // Spotify account privacy / data download page (direct link)
+  // Spotify account privacy / data download page
   const spotifyDataUrl = "https://www.spotify.com/account/privacy/";
 
   async function handleAnalyze() {
@@ -50,18 +76,117 @@ export default function SpotifyToolPage() {
     setData(null);
 
     try {
-      const formData = new FormData();
-      files.forEach((f) => formData.append("files", f));
+      // ✅ 1) Parse files locally (NO server upload)
+      const plays = (await parseSpotifyStreamingHistoryFiles(files as any)) as Play[];
 
-      const res = await fetch("/api/spotify/analyze", {
+      // ✅ 2) Compute metrics locally
+      const metrics = computeSpotifyMetrics(plays as any);
+
+      // ✅ 3) Extract unique trackIds (small)
+      const trackIds = Array.from(
+        new Set(
+          plays
+            .map((p) => extractTrackId(p.trackUri))
+            .filter(Boolean) as string[]
+        )
+      ).slice(0, 5000);
+
+      // ✅ 4) Ask server ONLY for genre mappings (small request)
+      const genreRes = await fetch("/api/spotify/track-genres", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trackIds }),
       });
 
-      const json = (await res.json()) as ApiResponse;
-      if (!res.ok) throw new Error(json.error || "Analyze failed");
+      const genreText = await genreRes.text();
+      let genreJson: any;
+      try {
+        genreJson = JSON.parse(genreText);
+      } catch {
+        throw new Error(genreText.slice(0, 160));
+      }
+      if (!genreRes.ok) throw new Error(genreJson?.error || "Genre lookup failed");
 
-      setData(json);
+      const trackGenres: Record<string, string[]> = genreJson.trackGenres ?? {};
+      const trackPrimaryGenre: Record<string, string> =
+        genreJson.trackPrimaryGenre ?? {};
+
+      // ✅ 5) Build Top Genres (by streams) locally
+      const genreStreams = new Map<string, number>();
+
+      for (const p of plays) {
+        const tid = extractTrackId(p.trackUri);
+        if (!tid) continue;
+        const genres = trackGenres[tid] ?? [];
+        for (const g of genres) {
+          const key = String(g).trim().toLowerCase();
+          if (!key) continue;
+          genreStreams.set(key, (genreStreams.get(key) ?? 0) + 1);
+        }
+      }
+
+      const topByStreams = [...genreStreams.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 25)
+        .map(([genre, streams]) => ({ genre, streams }));
+
+      // ✅ 6) Build Genre Evolution (primary genre only) locally
+      const monthGenreCounts = new Map<string, Map<string, number>>();
+      const primaryGenreTotals = new Map<string, number>();
+
+      for (const p of plays) {
+        const tid = extractTrackId(p.trackUri);
+        if (!tid) continue;
+
+        const g = (trackPrimaryGenre[tid] || "unknown").toLowerCase();
+        const m = monthKey(p.ts);
+
+        if (!monthGenreCounts.has(m)) monthGenreCounts.set(m, new Map());
+        const inner = monthGenreCounts.get(m)!;
+        inner.set(g, (inner.get(g) ?? 0) + 1);
+
+        primaryGenreTotals.set(g, (primaryGenreTotals.get(g) ?? 0) + 1);
+      }
+
+      const K = 8;
+      const seriesCore = [...primaryGenreTotals.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, K)
+        .map(([g]) => g);
+
+      const monthsSorted = [...monthGenreCounts.keys()].sort((a, b) =>
+        a.localeCompare(b)
+      );
+
+      const byMonth = monthsSorted.map((month) => {
+        const inner = monthGenreCounts.get(month)!;
+
+        let other = 0;
+        const row: Record<string, string | number> = { month };
+
+        for (const [g, count] of inner.entries()) {
+          if (seriesCore.includes(g)) row[g] = count;
+          else other += count;
+        }
+
+        for (const g of seriesCore) {
+          if (row[g] === undefined) row[g] = 0;
+        }
+
+        row["other"] = other;
+        return row;
+      });
+
+      setData({
+        metrics,
+        genres: {
+          topByStreams,
+          evolution: {
+            series: [...seriesCore, "other"],
+            byMonth,
+          },
+        },
+      });
     } catch (err: any) {
       setData({ error: err.message });
     } finally {
@@ -81,9 +206,7 @@ export default function SpotifyToolPage() {
       <details className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-6">
         <summary className="cursor-pointer select-none text-sm font-medium text-neutral-900">
           How to download your Spotify extended listening history
-          <span className="ml-2 text-xs text-neutral-500">
-            (click to expand)
-          </span>
+          <span className="ml-2 text-xs text-neutral-500">(click to expand)</span>
         </summary>
 
         <div className="mt-4 text-sm text-neutral-700">
@@ -146,7 +269,7 @@ export default function SpotifyToolPage() {
         </button>
 
         <p className="mt-4 text-xs text-neutral-500">
-          Privacy note: files are processed locally and not stored.
+          Privacy note: your files are processed in your browser and not uploaded.
         </p>
       </div>
 
@@ -171,8 +294,7 @@ export default function SpotifyToolPage() {
                 Total plays: <b>{data.metrics.totals.totalPlays}</b>
               </div>
               <div>
-                Plays over 30 seconds:{" "}
-                <b>{data.metrics.totals.playsOver30s}</b>
+                Plays over 30 seconds: <b>{data.metrics.totals.playsOver30s}</b>
               </div>
             </div>
           </section>
@@ -180,9 +302,8 @@ export default function SpotifyToolPage() {
           {/* Top Genres */}
           <section className="rounded-xl border border-neutral-200 p-6">
             <h2 className="text-lg font-semibold">Top Genres (by streams)</h2>
-
             <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-              {data.genres?.topByStreams?.map((g) => (
+              {(data.genres?.topByStreams ?? []).map((g) => (
                 <div
                   key={g.genre}
                   className="flex justify-between rounded-lg border border-neutral-200 px-3 py-2"
@@ -230,7 +351,6 @@ export default function SpotifyToolPage() {
           {/* Top Artists */}
           <section className="rounded-xl border border-neutral-200 p-6">
             <h2 className="text-lg font-semibold">Top Artists (by streams)</h2>
-
             <div className="mt-3 space-y-2 text-sm">
               {data.metrics.topByStreams.artists.slice(0, 10).map((a) => (
                 <div key={a.name} className="flex justify-between">
@@ -244,7 +364,6 @@ export default function SpotifyToolPage() {
           {/* Top Tracks */}
           <section className="rounded-xl border border-neutral-200 p-6">
             <h2 className="text-lg font-semibold">Top Tracks (by streams)</h2>
-
             <div className="mt-3 space-y-2 text-sm">
               {data.metrics.topByStreams.tracks.slice(0, 10).map((t) => (
                 <div key={t.name} className="flex justify-between">
