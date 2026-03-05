@@ -3,7 +3,7 @@ export default function DropsPage() {
     <main className="mx-auto max-w-6xl px-6 py-12">
       <h1 className="text-3xl font-semibold">Drops</h1>
       <p className="mt-3 text-neutral-600">
-        Merch drops + events + releases. Everything new lives here.
+        Drops + events + releases. Everything new lives here.
       </p>
 
       {/* Top section */}
@@ -36,26 +36,27 @@ export default function DropsPage() {
           <h2 className="text-lg font-semibold">Upcoming Events</h2>
 
           <a
-            href="https://partiful.com/e/vC0j8TVf22SbjxTi60lG?c=2CrsxI1s"
+            href="https://posh.vip/e/ignite-indie-night"
             target="_blank"
             rel="noreferrer"
             className="mt-4 block overflow-hidden rounded-lg border border-neutral-200 hover:bg-neutral-50 transition"
           >
             <img
-              src="/images/407byblos.png"
-              alt="+1-407-RECORDS @ BYBLOS HOOKAH LOUNGE"
+              src="/images/ignitethenight.png"
+              alt="IGNITE INDIE NIGHT"
               className="h-40 w-full object-cover"
               loading="lazy"
             />
 
             <div className="p-4">
               <p className="text-sm text-neutral-500">Upcoming Event</p>
+
               <h3 className="mt-1 font-medium">
-                +1-407-RECORDS @ BYBLOS HOOKAH LOUNGE
+                IGNITE INDIE NIGHT
               </h3>
 
               <p className="mt-2 text-sm text-neutral-600">
-                Byblos Hookah Lounge · 02/13/26 · 9:00 PM
+                Austin's Coffee · 4/4/26 · 8:00 PM
               </p>
 
               <div className="mt-3 inline-block text-sm font-medium text-black underline">
