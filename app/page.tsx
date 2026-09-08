@@ -4,11 +4,12 @@ import Image from "next/image";
 import { useState } from "react";
 
 type SocialPlatform = "soundcloud" | "instagram" | "tiktok" | "youtube";
+type CountryCode = "AR" | "VN";
 
 type FamilyMember = {
   name: string;
   location?: string;
-  origins: { country: string; code: "AR" }[];
+  origins: { country: string; code: CountryCode }[];
   favoriteGenre: string;
   bio: string;
   image?: string;
@@ -21,13 +22,26 @@ const familyMembers: FamilyMember[] = [
     location: "Orlando, FL",
     origins: [{ country: "Argentina", code: "AR" }],
     favoriteGenre: "Brazilian Funk, Trance & Jersey Club",
-    bio: "MATTI is an Orlando-based open-format EDM DJ and the founder of N0 1IMITS. With Argentine roots and a wide-ranging taste in electronic music, he builds his sets around energy and instinct instead of staying tied to one sound. Through N0 1IMITS, he is creating events, sharing new music, and building a community for the people who love it.",
+    bio: "MATTI is a 22-year-old open-format EDM DJ, lifelong music and chart nerd, and the founder of N0 1IMITS. After interning at Virgin Music Group and Universal Music Latin, he became even more obsessed with the way music moves across charts, scenes, and cultures. Drawn to production that feels both chaotic and atmospheric, he built N0 1IMITS to bring music heads together, connect different cultures, and make space for sounds that do not fit inside one lane.",
     image: "/matti.JPG",
     links: {
-      soundcloud: "https://soundcloud.com/matti-651038290",
+      soundcloud: "https://soundcloud.com/itsmattimusic",
       instagram: "https://www.instagram.com/itsmattias/",
       tiktok: "https://www.tiktok.com/@itsmattiiii",
       youtube: "https://www.youtube.com/@itsmattiiii",
+    },
+  },
+  {
+    name: "justin!",
+    location: "West Palm Beach, FL",
+    origins: [{ country: "Vietnam", code: "VN" }],
+    favoriteGenre: "Techno, Trance & Hardcore",
+    bio: "justin! is a 21-year-old DJ who got an early introduction to electronic music from his EDM-loving parents. Drawn to fast-paced, hard music, his first set at N01SE LIVE had the crowd jumping by the end of the night. Now he is diving into production and putting his own ideas together, including his “Pump It x Crowd Operator” mashup on SoundCloud.",
+    image: "/justin.jpeg",
+    links: {
+      soundcloud: "https://soundcloud.com/justins-wav",
+      instagram: "https://www.instagram.com/justinhuynnh/",
+      tiktok: "https://www.tiktok.com/@justinhuynnh",
     },
   },
 ];
@@ -98,7 +112,7 @@ function SocialIcon({ platform }: { platform: SocialPlatform }) {
   );
 }
 
-function CountryFlag({ code }: { code: "AR" }) {
+function CountryFlag({ code }: { code: CountryCode }) {
   if (code === "AR") {
     return (
       <svg
@@ -124,7 +138,15 @@ function CountryFlag({ code }: { code: "AR" }) {
     );
   }
 
-  return null;
+  return (
+    <svg viewBox="0 0 60 40" aria-hidden="true" className="h-full w-full">
+      <rect width="60" height="40" fill="#DA251D" />
+      <path
+        d="m30 8.2 2.57 7.91h8.32l-6.73 4.89 2.57 7.91L30 24.02l-6.73 4.89L25.84 21l-6.73-4.89h8.32Z"
+        fill="#FFFF00"
+      />
+    </svg>
+  );
 }
 
 export default function Home() {
@@ -404,7 +426,13 @@ export default function Home() {
 
               {/* Member Information */}
               <div className="relative">
-                <h4 className="text-[clamp(4.5rem,10vw,9.5rem)] font-medium leading-[0.76] tracking-[-0.075em] text-white">
+                <h4
+                  className={`text-[clamp(4.5rem,10vw,9.5rem)] font-medium leading-[0.76] text-white ${
+                    activeFamilyMember.name === "MATTI"
+                      ? "tracking-[-0.025em]"
+                      : "tracking-[-0.075em]"
+                  }`}
+                >
                   {activeFamilyMember.name}
                 </h4>
 
@@ -425,7 +453,7 @@ export default function Home() {
                           key={origin.country}
                           title={origin.country}
                           aria-label={origin.country}
-                          className="family-origin-flag inline-flex h-9 w-14 overflow-hidden rounded-sm border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
+                          className="family-origin-flag relative inline-flex h-12 w-[4.5rem] overflow-hidden rounded-sm border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] md:h-14 md:w-[5.25rem]"
                           style={{ animationDelay: `${index * 0.6}s` }}
                         >
                           <CountryFlag code={origin.code} />
@@ -436,7 +464,7 @@ export default function Home() {
 
                   <div className="min-h-28 bg-black p-5">
                     <p className="text-[9px] font-semibold uppercase tracking-[0.35em] text-white">
-                      Favorite genre
+                      Favorite genres
                     </p>
                     <p className="mt-4 text-sm font-medium leading-5 text-white">
                       {activeFamilyMember.favoriteGenre}
@@ -520,9 +548,27 @@ export default function Home() {
           }
 
           .family-origin-flag {
-            display: inline-block;
-            animation: family-flag-float 4.5s ease-in-out infinite;
+            animation: family-flag-wave 3.2s ease-in-out infinite;
+            backface-visibility: hidden;
             filter: grayscale(0.15);
+            transform-origin: left center;
+            will-change: transform;
+          }
+
+          .family-origin-flag::after {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+              90deg,
+              transparent 0%,
+              rgba(255, 255, 255, 0.18) 30%,
+              rgba(0, 0, 0, 0.2) 54%,
+              rgba(255, 255, 255, 0.12) 76%,
+              transparent 100%
+            );
+            content: "";
+            pointer-events: none;
+            animation: family-flag-folds 3.2s ease-in-out infinite;
           }
 
           @keyframes family-door-exit-next {
@@ -579,13 +625,35 @@ export default function Home() {
             }
           }
 
-          @keyframes family-flag-float {
+          @keyframes family-flag-wave {
             0%,
             100% {
-              transform: translateY(0) rotate(-1deg);
+              transform: perspective(180px) rotateY(0deg) skewY(0deg)
+                scaleX(1);
+            }
+            20% {
+              transform: perspective(180px) rotateY(-13deg) skewY(1.2deg)
+                scaleX(0.98);
+            }
+            45% {
+              transform: perspective(180px) rotateY(10deg) skewY(-1deg)
+                scaleX(1.015);
+            }
+            70% {
+              transform: perspective(180px) rotateY(-8deg) skewY(0.8deg)
+                scaleX(0.99);
+            }
+          }
+
+          @keyframes family-flag-folds {
+            0%,
+            100% {
+              opacity: 0.55;
+              transform: translateX(-24%);
             }
             50% {
-              transform: translateY(-4px) rotate(2deg);
+              opacity: 0.9;
+              transform: translateX(24%);
             }
           }
 
@@ -596,6 +664,10 @@ export default function Home() {
             .family-door-enter-previous,
             .family-floating-photo,
             .family-origin-flag {
+              animation: none;
+            }
+
+            .family-origin-flag::after {
               animation: none;
             }
           }
