@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 type SocialPlatform = "soundcloud" | "instagram" | "tiktok" | "youtube";
-type CountryCode = "AR" | "VN";
+type CountryCode = "AR" | "VN" | "KH";
 
 type FamilyMember = {
   name: string;
@@ -44,6 +44,19 @@ const familyMembers: FamilyMember[] = [
       tiktok: "https://www.tiktok.com/@justinhuynnh",
     },
   },
+  {
+    name: "ridge",
+    location: "Jacksonville, FL",
+    origins: [{ country: "Cambodia", code: "KH" }],
+    favoriteGenre: "Trance, Garage & Trap",
+    bio: "ridge is a 22-year-old DJ who credits his early love of EDM to car culture and the dubstep craze of 2010–2013. Exposure to artists including Flume, Alison Wonderland, Zedd, Skrillex, and ISOKNOCK led him to carve out a non-linear path in DJing. From trance to trap, ridge enjoys listening to and playing a wide range of EDM. Now he is chasing music production with hopes of releasing an EP by the end of 2027.",
+    image: "/ridge.JPG",
+    links: {
+      soundcloud: "https://soundcloud.com/lvrnridge",
+      instagram: "https://www.instagram.com/ridqeley/",
+      youtube: "https://www.youtube.com/@curatedbyridge",
+    },
+  },
 ];
 
 const socialPlatforms: { key: SocialPlatform; label: string }[] = [
@@ -51,6 +64,43 @@ const socialPlatforms: { key: SocialPlatform; label: string }[] = [
   { key: "instagram", label: "Instagram" },
   { key: "tiktok", label: "TikTok" },
   { key: "youtube", label: "YouTube" },
+];
+
+type RadioStation = {
+  number: string;
+  artist: string;
+  title: string;
+  soundcloudUrl: string;
+};
+
+const radioStations: RadioStation[] = [
+  {
+    number: "01",
+    artist: "MATTI",
+    title: "N01SE LIVE @ POP ORLANDO",
+    soundcloudUrl:
+      "https://soundcloud.com/itsmattimusic/matti-no1se-live-pop-orlando",
+  },
+  {
+    number: "02",
+    artist: "RIDGE",
+    title: "N01SE LIVE @ POP ORLANDO",
+    soundcloudUrl: "https://soundcloud.com/lvrnridge/n01selivepop",
+  },
+  {
+    number: "03",
+    artist: "JUSTIN",
+    title: "N01SE LIVE @ POP ORLANDO",
+    soundcloudUrl:
+      "https://soundcloud.com/justins-wav/no1se-live-pop-orlando",
+  },
+  {
+    number: "04",
+    artist: "MATTI",
+    title: "I FREESTYLE MIXED TECH HOUSE",
+    soundcloudUrl:
+      "https://soundcloud.com/itsmattimusic/i-freestyled-mixed-tech-house",
+  },
 ];
 
 function SocialIcon({ platform }: { platform: SocialPlatform }) {
@@ -138,13 +188,28 @@ function CountryFlag({ code }: { code: CountryCode }) {
     );
   }
 
+  if (code === "VN") {
+    return (
+      <svg viewBox="0 0 60 40" aria-hidden="true" className="h-full w-full">
+        <rect width="60" height="40" fill="#DA251D" />
+        <path
+          d="m30 8.2 2.57 7.91h8.32l-6.73 4.89 2.57 7.91L30 24.02l-6.73 4.89L25.84 21l-6.73-4.89h8.32Z"
+          fill="#FFFF00"
+        />
+      </svg>
+    );
+  }
+
   return (
     <svg viewBox="0 0 60 40" aria-hidden="true" className="h-full w-full">
-      <rect width="60" height="40" fill="#DA251D" />
-      <path
-        d="m30 8.2 2.57 7.91h8.32l-6.73 4.89 2.57 7.91L30 24.02l-6.73 4.89L25.84 21l-6.73-4.89h8.32Z"
-        fill="#FFFF00"
-      />
+      <rect width="60" height="40" fill="#032EA1" />
+      <rect y="10" width="60" height="20" fill="#E00025" />
+      <g fill="#FFFFFF">
+        <path d="M16 28h28v2H16z" />
+        <path d="M18 25h24v3H18z" />
+        <path d="M20 21h5v4h-5zM35 21h5v4h-5zM27 19h6v6h-6z" />
+        <path d="m20 21 2.5-4 2.5 4Zm15 0 2.5-4 2.5 4Zm-8-2 3-8 3 8Z" />
+      </g>
     </svg>
   );
 }
@@ -157,8 +222,17 @@ export default function Home() {
   const [familyAnimation, setFamilyAnimation] = useState<
     "idle" | "exit" | "enter"
   >("idle");
+  const [activeRadioStationIndex, setActiveRadioStationIndex] = useState(0);
+  const [hasTunedRadio, setHasTunedRadio] = useState(false);
 
   const activeFamilyMember = familyMembers[activeFamilyIndex]!;
+  const activeRadioStation = radioStations[activeRadioStationIndex]!;
+  const activeRadioEmbedUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(
+    activeRadioStation.soundcloudUrl,
+  )}&color=%23ffffff&auto_play=${hasTunedRadio ? "true" : "false"}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true`;
+  const radioDialRotation =
+    -115 +
+    activeRadioStationIndex * (230 / Math.max(radioStations.length - 1, 1));
   const familyDoorAnimationClass =
     familyAnimation === "idle"
       ? ""
@@ -181,6 +255,21 @@ export default function Home() {
 
       window.setTimeout(() => setFamilyAnimation("idle"), 620);
     }, 360);
+  };
+
+  const tuneRadio = (direction: "next" | "previous") => {
+    setHasTunedRadio(true);
+    setActiveRadioStationIndex((currentIndex) => {
+      const change = direction === "next" ? 1 : -1;
+      return (
+        (currentIndex + change + radioStations.length) % radioStations.length
+      );
+    });
+  };
+
+  const tuneToRadioStation = (stationIndex: number) => {
+    setHasTunedRadio(true);
+    setActiveRadioStationIndex(stationIndex);
   };
 
   return (
@@ -257,13 +346,8 @@ export default function Home() {
       {/* ABOUT SECTION */}
       <section
         id="about"
-        className="relative min-h-screen overflow-hidden border-t border-white/10 px-6 py-24 md:px-10 md:py-28"
+        className="relative min-h-screen overflow-hidden border-t border-white/10 bg-black px-6 py-24 md:px-10 md:py-28"
       >
-        {/* Atmospheric Background */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_18%,rgba(255,255,255,0.08),transparent_30%)]" />
-        <div className="pointer-events-none absolute top-0 left-[14%] h-full w-px bg-white/[0.04]" />
-        <div className="pointer-events-none absolute top-0 right-[14%] h-full w-px bg-white/[0.04]" />
-
         {/* About Header */}
         <h2 className="absolute top-8 left-8 z-20 font-semibold uppercase tracking-[0.35em] text-2xl md:top-10 md:left-10 md:text-4xl">
           About
@@ -281,10 +365,6 @@ export default function Home() {
         <div className="relative z-10 mx-auto w-full max-w-7xl">
           {/* Motto + Project Introduction */}
           <div className="relative grid gap-12 pt-12 pb-16 sm:pt-16 sm:pb-20 lg:grid-cols-[1.22fr_0.78fr] lg:items-end lg:gap-20 lg:pt-20 lg:pb-24">
-            <span className="pointer-events-none absolute -top-2 right-0 select-none text-[30vw] font-black leading-none tracking-[-0.12em] text-white/[0.025] md:text-[20vw]">
-              01
-            </span>
-
             <div className="relative">
               <h3 className="max-w-4xl text-[clamp(2.65rem,5.6vw,5.7rem)] font-medium leading-[0.98] tracking-[-0.055em] text-white">
                 For the love of music, the people it brings together &amp;
@@ -942,8 +1022,9 @@ export default function Home() {
               </p>
 
               <p className="mt-4 max-w-2xl text-sm leading-7 text-white/35 md:text-base md:leading-8">
-                N0 1IMITS RADIO is a rotating transmission of DJ sets, recorded
-                sessions, and mixes from inside and around the project.
+                N0 1IMITS RADIO is a rotating set of stations featuring DJ
+                sets, recorded sessions, and mixes from inside and around the
+                project.
               </p>
             </div>
           </div>
@@ -962,163 +1043,281 @@ export default function Home() {
               </div>
 
               <p className="max-w-sm text-xs uppercase leading-6 tracking-[0.18em] text-white/35 sm:text-right">
-                Select a transmission.
+                Tune a station.
                 <br />
                 Press play.
               </p>
             </div>
 
-            {/* Radio Transmissions */}
-            <div className="grid gap-x-5 gap-y-10 md:grid-cols-2">
-              {/* Transmission 01 */}
-              <div>
-                <div className="overflow-hidden border border-white/15 bg-white/[0.02]">
-                  <iframe
-                    width="100%"
-                    height="360"
-                    scrolling="no"
-                    frameBorder="no"
-                    allow="autoplay"
-                    loading="lazy"
-                    title="MATTI — N01SE LIVE at POP Orlando"
-                    src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fmatti-651038290%2Fmatti-no1se-live-pop-orlando&color=%23ffffff&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true"
-                  />
+            {/* Interactive Radio */}
+            <div className="radio-console relative overflow-hidden border border-white/20 bg-[#050505] shadow-[0_30px_100px_rgba(0,0,0,0.55)]">
+              <div className="radio-tuning-sweep pointer-events-none absolute inset-y-0 z-10 w-px bg-white/30" />
+
+              <div className="relative flex items-center justify-between gap-4 border-b border-white/15 px-5 py-4 md:px-7">
+                <div className="flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.35em] text-white/55 md:text-[10px]">
+                  <span className="radio-on-air-dot h-2 w-2 rounded-full bg-white" />
+                  On Air
                 </div>
 
-                <div className="flex items-start justify-between gap-6 border-b border-white/10 py-4">
-                  <div>
-                    <p className="text-[9px] font-semibold uppercase tracking-[0.35em] text-white/30 md:text-[10px]">
-                      Transmission 01
-                    </p>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.32em] text-white/35 md:text-[10px]">
+                  Station {activeRadioStation.number} / {String(radioStations.length).padStart(2, "0")}
+                </p>
+              </div>
 
-                    <h4 className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-white md:text-base">
-                      MATTI — N01SE LIVE @ POP ORLANDO
-                    </h4>
+              <div className="relative grid md:grid-cols-[0.78fr_1.22fr]">
+                <div className="border-b border-white/15 p-5 md:border-r md:border-b-0 md:p-7 lg:p-9">
+                  <div
+                    key={`display-${activeRadioStation.number}`}
+                    className="radio-display border border-white/15 bg-black p-5 md:p-6"
+                    aria-live="polite"
+                  >
+                    <div className="flex items-start justify-between gap-6">
+                      <div>
+                        <p className="text-[9px] font-semibold uppercase tracking-[0.4em] text-white/35">
+                          Station
+                        </p>
+                        <p className="mt-2 text-6xl font-medium leading-none tracking-[-0.08em] text-white md:text-7xl">
+                          {activeRadioStation.number}
+                        </p>
+                      </div>
+
+                      <div className="flex h-16 items-end gap-1" aria-hidden="true">
+                        {Array.from({ length: 14 }).map((_, index) => (
+                          <span
+                            key={`${activeRadioStation.number}-${index}`}
+                            className="radio-signal-bar w-1 bg-white/70"
+                            style={{
+                              height: `${28 + ((index * 19) % 68)}%`,
+                              animationDelay: `${index * 75}ms`,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-8 border-t border-white/10 pt-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/45">
+                        {activeRadioStation.artist}
+                      </p>
+                      <h4 className="mt-3 text-lg font-medium uppercase leading-snug tracking-[0.12em] text-white md:text-xl">
+                        {activeRadioStation.title}
+                      </h4>
+                    </div>
                   </div>
 
-                  <a
-                    href="https://soundcloud.com/matti-651038290/matti-no1se-live-pop-orlando"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.25em] text-white/30 transition-colors duration-300 hover:text-white md:text-[10px]"
-                  >
-                    SoundCloud →
-                  </a>
+                  <div className="mt-6 flex items-center justify-between gap-4">
+                    <button
+                      type="button"
+                      onClick={() => tuneRadio("previous")}
+                      aria-label="Tune to previous station"
+                      className="group flex h-12 w-12 items-center justify-center rounded-full border border-white/20 transition duration-300 hover:border-white hover:bg-white hover:text-black"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 transition-transform duration-300 group-hover:-translate-x-0.5">
+                        <path d="m14.5 5-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      </svg>
+                    </button>
+
+                    <div className="flex flex-col items-center gap-3">
+                      <div
+                        className="radio-dial relative h-24 w-24 rounded-full border border-white/25 bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.18),rgba(255,255,255,0.03)_38%,rgba(0,0,0,0.9)_72%)] shadow-[inset_0_0_0_8px_rgba(255,255,255,0.025),0_12px_30px_rgba(0,0,0,0.5)] md:h-28 md:w-28"
+                        style={{ transform: `rotate(${radioDialRotation}deg)` }}
+                        aria-hidden="true"
+                      >
+                        <span className="absolute top-2 left-1/2 h-4 w-px -translate-x-1/2 bg-white" />
+                      </div>
+                      <span className="text-[8px] font-semibold uppercase tracking-[0.4em] text-white/30">
+                        Tuning
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => tuneRadio("next")}
+                      aria-label="Tune to next station"
+                      className="group flex h-12 w-12 items-center justify-center rounded-full border border-white/20 transition duration-300 hover:border-white hover:bg-white hover:text-black"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-0.5">
+                        <path d="m9.5 5 7 7-7 7" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-4 md:p-6 lg:p-7">
+                  <div className="overflow-hidden border border-white/15 bg-white/[0.02]">
+                    <iframe
+                      key={activeRadioStation.soundcloudUrl}
+                      width="100%"
+                      height="360"
+                      scrolling="no"
+                      frameBorder="no"
+                      allow="autoplay"
+                      loading="lazy"
+                      title={`${activeRadioStation.artist} — ${activeRadioStation.title}`}
+                      src={activeRadioEmbedUrl}
+                    />
+                  </div>
+
+                  <div className="flex items-start justify-between gap-6 border-b border-white/10 py-4">
+                    <div>
+                      <p className="text-[9px] font-semibold uppercase tracking-[0.35em] text-white/30 md:text-[10px]">
+                        Station {activeRadioStation.number}
+                      </p>
+                      <p className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-white md:text-base">
+                        {activeRadioStation.artist} — {activeRadioStation.title}
+                      </p>
+                    </div>
+
+                    <a
+                      href={activeRadioStation.soundcloudUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.25em] text-white/30 transition-colors duration-300 hover:text-white md:text-[10px]"
+                    >
+                      SoundCloud →
+                    </a>
+                  </div>
                 </div>
               </div>
 
-              {/* Transmission 02 */}
-              <div>
-                <div className="overflow-hidden border border-white/15 bg-white/[0.02]">
-                  <iframe
-                    width="100%"
-                    height="360"
-                    scrolling="no"
-                    frameBorder="no"
-                    allow="autoplay"
-                    loading="lazy"
-                    title="RIDGE — N01SE LIVE at POP Orlando"
-                    src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Flvrnridge%2Fn01selivepop&color=%23ffffff&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true"
-                  />
-                </div>
+              <div className="relative grid gap-px border-t border-white/15 bg-white/15 sm:grid-cols-2 lg:grid-cols-4">
+                {radioStations.map((station, index) => {
+                  const isActive = index === activeRadioStationIndex;
 
-                <div className="flex items-start justify-between gap-6 border-b border-white/10 py-4">
-                  <div>
-                    <p className="text-[9px] font-semibold uppercase tracking-[0.35em] text-white/30 md:text-[10px]">
-                      Transmission 02
-                    </p>
-
-                    <h4 className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-white md:text-base">
-                      RIDGE — N01SE LIVE @ POP ORLANDO
-                    </h4>
-                  </div>
-
-                  <a
-                    href="https://soundcloud.com/lvrnridge/n01selivepop"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.25em] text-white/30 transition-colors duration-300 hover:text-white md:text-[10px]"
-                  >
-                    SoundCloud →
-                  </a>
-                </div>
-              </div>
-
-              {/* Transmission 03 */}
-              <div>
-                <div className="overflow-hidden border border-white/15 bg-white/[0.02]">
-                  <iframe
-                    width="100%"
-                    height="360"
-                    scrolling="no"
-                    frameBorder="no"
-                    allow="autoplay"
-                    loading="lazy"
-                    title="JUSTIN — N01SE LIVE at POP Orlando"
-                    src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fjustins-wav%2Fno1se-live-pop-orlando&color=%23ffffff&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true"
-                  />
-                </div>
-
-                <div className="flex items-start justify-between gap-6 border-b border-white/10 py-4">
-                  <div>
-                    <p className="text-[9px] font-semibold uppercase tracking-[0.35em] text-white/30 md:text-[10px]">
-                      Transmission 03
-                    </p>
-
-                    <h4 className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-white md:text-base">
-                      JUSTIN — N01SE LIVE @ POP ORLANDO
-                    </h4>
-                  </div>
-
-                  <a
-                    href="https://soundcloud.com/justins-wav/no1se-live-pop-orlando"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.25em] text-white/30 transition-colors duration-300 hover:text-white md:text-[10px]"
-                  >
-                    SoundCloud →
-                  </a>
-                </div>
-              </div>
-
-              {/* Transmission 04 */}
-              <div>
-                <div className="overflow-hidden border border-white/15 bg-white/[0.02]">
-                  <iframe
-                    width="100%"
-                    height="360"
-                    scrolling="no"
-                    frameBorder="no"
-                    allow="autoplay"
-                    loading="lazy"
-                    title="MATTI — I Freestyle Mixed Tech House"
-                    src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fmatti-651038290%2Fi-freestyled-mixed-tech-house&color=%23ffffff&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true"
-                  />
-                </div>
-
-                <div className="flex items-start justify-between gap-6 border-b border-white/10 py-4">
-                  <div>
-                    <p className="text-[9px] font-semibold uppercase tracking-[0.35em] text-white/30 md:text-[10px]">
-                      Transmission 04
-                    </p>
-
-                    <h4 className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-white md:text-base">
-                      MATTI — I FREESTYLE MIXED TECH HOUSE
-                    </h4>
-                  </div>
-
-                  <a
-                    href="https://soundcloud.com/matti-651038290/i-freestyled-mixed-tech-house"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.25em] text-white/30 transition-colors duration-300 hover:text-white md:text-[10px]"
-                  >
-                    SoundCloud →
-                  </a>
-                </div>
+                  return (
+                    <button
+                      key={station.number}
+                      type="button"
+                      onClick={() => tuneToRadioStation(index)}
+                      aria-pressed={isActive}
+                      className={`group min-h-28 p-4 text-left transition-colors duration-300 ${
+                        isActive
+                          ? "bg-white text-black"
+                          : "bg-black text-white hover:bg-white hover:text-black"
+                      }`}
+                    >
+                      <span className={`text-[9px] font-semibold uppercase tracking-[0.35em] ${isActive ? "text-black/50" : "text-white/30 group-hover:text-black/50"}`}>
+                        Station {station.number}
+                      </span>
+                      <span className="mt-3 block text-sm font-semibold uppercase tracking-[0.2em]">
+                        {station.artist}
+                      </span>
+                      <span className={`mt-2 block text-[9px] uppercase leading-4 tracking-[0.18em] ${isActive ? "text-black/60" : "text-white/35 group-hover:text-black/60"}`}>
+                        {station.title}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
+
+          <style jsx>{`
+            .radio-console {
+              isolation: isolate;
+            }
+
+            .radio-console::before {
+              position: absolute;
+              z-index: 0;
+              inset: 0;
+              background: repeating-linear-gradient(
+                0deg,
+                transparent 0,
+                transparent 5px,
+                rgba(255, 255, 255, 0.035) 6px
+              );
+              content: "";
+              pointer-events: none;
+            }
+
+            .radio-tuning-sweep {
+              left: 0;
+              animation: radio-tuning-sweep 4.8s linear infinite;
+              box-shadow: 0 0 22px rgba(255, 255, 255, 0.3);
+            }
+
+            .radio-on-air-dot {
+              animation: radio-on-air-pulse 1.8s ease-in-out infinite;
+              box-shadow: 0 0 14px rgba(255, 255, 255, 0.65);
+            }
+
+            .radio-display {
+              animation: radio-display-in 420ms cubic-bezier(0.16, 1, 0.3, 1)
+                both;
+            }
+
+            .radio-signal-bar {
+              animation: radio-signal 850ms ease-in-out infinite alternate;
+              transform-origin: bottom;
+            }
+
+            .radio-dial {
+              transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+            @keyframes radio-tuning-sweep {
+              0% {
+                left: 0;
+                opacity: 0;
+              }
+              8%,
+              88% {
+                opacity: 0.55;
+              }
+              100% {
+                left: 100%;
+                opacity: 0;
+              }
+            }
+
+            @keyframes radio-on-air-pulse {
+              0%,
+              100% {
+                opacity: 0.35;
+                transform: scale(0.82);
+              }
+              50% {
+                opacity: 1;
+                transform: scale(1);
+              }
+            }
+
+            @keyframes radio-display-in {
+              from {
+                opacity: 0;
+                transform: translateY(8px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+
+            @keyframes radio-signal {
+              from {
+                opacity: 0.25;
+                transform: scaleY(0.28);
+              }
+              to {
+                opacity: 0.9;
+                transform: scaleY(1);
+              }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+              .radio-tuning-sweep,
+              .radio-on-air-dot,
+              .radio-display,
+              .radio-signal-bar {
+                animation: none;
+              }
+
+              .radio-dial {
+                transition: none;
+              }
+            }
+          `}</style>
 
           {/* Platform Links */}
           <div className="mt-20 border-t border-white/10 pt-8 md:mt-28 md:pt-10">
@@ -1133,30 +1332,6 @@ export default function Home() {
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
-              {/* SoundCloud */}
-              <a
-                href="https://on.soundcloud.com/2VwsuloIEHZ0ulaHbb"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group border border-white/15 bg-white/[0.02] p-5 transition-colors duration-300 hover:bg-white hover:text-black"
-              >
-                <div className="flex items-center justify-between gap-6">
-                  <div>
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.35em]">
-                      SoundCloud
-                    </h3>
-
-                    <p className="mt-3 text-xs leading-5 text-white/45 transition-colors duration-300 group-hover:text-black/60">
-                      Mixes, sets, and audio transmissions.
-                    </p>
-                  </div>
-
-                  <span className="text-xl transition-transform duration-300 group-hover:translate-x-1">
-                    →
-                  </span>
-                </div>
-              </a>
-
               {/* Instagram */}
               <a
                 href="https://www.instagram.com/n01imits.project/"
@@ -1165,15 +1340,9 @@ export default function Home() {
                 className="group border border-white/15 bg-white/[0.02] p-5 transition-colors duration-300 hover:bg-white hover:text-black"
               >
                 <div className="flex items-center justify-between gap-6">
-                  <div>
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.35em]">
-                      Instagram
-                    </h3>
-
-                    <p className="mt-3 text-xs leading-5 text-white/45 transition-colors duration-300 group-hover:text-black/60">
-                      Flyers, visuals, and project updates.
-                    </p>
-                  </div>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.35em]">
+                    Instagram
+                  </h3>
 
                   <span className="text-xl transition-transform duration-300 group-hover:translate-x-1">
                     →
@@ -1183,21 +1352,31 @@ export default function Home() {
 
               {/* TikTok */}
               <a
-                href="https://www.tiktok.com/@itsmattiiii"
+                href="https://www.tiktok.com/@n01imits"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group border border-white/15 bg-white/[0.02] p-5 transition-colors duration-300 hover:bg-white hover:text-black"
               >
                 <div className="flex items-center justify-between gap-6">
-                  <div>
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.35em]">
-                      TikTok
-                    </h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.35em]">
+                    TikTok
+                  </h3>
 
-                    <p className="mt-3 text-xs leading-5 text-white/45 transition-colors duration-300 group-hover:text-black/60">
-                      Clips, edits, and short-form sound.
-                    </p>
-                  </div>
+                  <span className="text-xl transition-transform duration-300 group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
+              </a>
+
+              {/* Email */}
+              <a
+                href="mailto:n01imitsmusicproject@gmail.com"
+                className="group border border-white/15 bg-white/[0.02] p-5 transition-colors duration-300 hover:bg-white hover:text-black"
+              >
+                <div className="flex items-center justify-between gap-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.35em]">
+                    Email
+                  </h3>
 
                   <span className="text-xl transition-transform duration-300 group-hover:translate-x-1">
                     →
